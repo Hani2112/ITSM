@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IT Service Center - Cổng hỗ trợ kỹ thuật nội bộ</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      padding: 20px;
+    }
+
+    .container {
+      display: flex;
+      width: 100%;
+      max-width: 1000px;
+      min-height: 600px;
+      background: #ffffff;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45);
+    }
+
+    .hero-panel {
+      flex: 1.1;
+      background: linear-gradient(145deg, #1e40af 0%, #3b82f6 100%);
+      color: #ffffff;
+      padding: 50px 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .brand-icon {
+      font-size: 40px;
+      margin-bottom: 20px;
+      display: inline-block;
+      color: #93c5fd;
+    }
+
+    .hero-title {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      line-height: 1.2;
+    }
+
+    .hero-desc {
+      font-size: 15px;
+      color: #dbeafe;
+      line-height: 1.6;
+      margin-bottom: 40px;
+    }
+
+    .feature-list {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 14px;
+      color: #f1f5f9;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 12px 16px;
+      border-radius: 12px;
+      backdrop-filter: blur(5px);
+    }
+
+    .feature-item span:first-child {
+      font-size: 18px;
+    }
+
+    .login-panel {
+      flex: 1;
+      padding: 50px 45px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: #ffffff;
+    }
+
+    .login-header h2 {
+      font-size: 26px;
+      color: #0f172a;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .login-header p {
+      font-size: 14px;
+      color: #64748b;
+    }
+
+    .error-alert {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      background: #fee2e2;
+      color: #dc2626;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      margin: 20px 0 10px;
+    }
+
+    .form-group {
+      margin-top: 18px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 6px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 10px;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .btn-submit {
+      width: 100%;
+      margin-top: 24px;
+      padding: 13px;
+      background: #2563eb;
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-submit:hover {
+      background: #1d4ed8;
+    }
+
+    .demo-box {
+      margin-top: 24px;
+      background: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      padding: 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      color: #475569;
+    }
+
+    .demo-box p:first-child {
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 6px;
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 20px;
+    }
+
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(4px);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      z-index: 1000;
+    }
+
+    .spinner {
+      width: 45px;
+      height: 45px;
+      border: 4px solid rgba(255, 255, 255, 0.2);
+      border-top-color: #60a5fa;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 12px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 820px) {
+      .container {
+        flex-direction: column;
+      }
+      .hero-panel {
+        padding: 30px 25px;
+      }
+      .login-panel {
+        padding: 35px 25px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="hero-panel">
+      <div>
+        <div class="brand-icon">
+          <i class="fa-solid fa-headset"></i>
+        </div>
+        <h1 class="hero-title">IT Service Center</h1>
+        <p class="hero-desc">Cổng hỗ trợ kỹ thuật nội bộ — gửi yêu cầu, theo dõi tiến độ và nhận cập nhật ngay lập tức.</p>
+
+        <div class="feature-list">
+          <div class="feature-item">
+            <span>🎫</span>
+            <span>Tạo ticket hỗ trợ chỉ trong vài giây</span>
+          </div>
+          <div class="feature-item">
+            <span>📊</span>
+            <span>Theo dõi trạng thái xử lý realtime</span>
+          </div>
+          <div class="feature-item">
+            <span>📧</span>
+            <span>Nhận email cập nhật tiến độ tự động</span>
+          </div>
+          <div class="feature-item">
+            <span>🔒</span>
+            <span>Bảo mật &amp; xác thực nội bộ</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="login-panel">
+      <div>
+        <div class="login-header">
+          <h2>Chào mừng trở lại 👋</h2>
+          <p>Đăng nhập để tiếp tục sử dụng IT Service Center</p>
+        </div>
+
+        <div id="errorAlert" class="error-alert">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span>Tên đăng nhập hoặc mật khẩu không đúng.</span>
+        </div>
+
+        <form id="loginForm">
+          <div class="form-group">
+            <label for="username">Tên đăng nhập</label>
+            <input type="text" id="username" class="form-input" placeholder="Ví dụ: user1 hoặc vantrong" required>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Mật khẩu</label>
+            <input type="password" id="password" class="form-input" placeholder="Nhập mật khẩu" required>
+          </div>
+
+          <button type="submit" class="btn-submit">Đăng nhập</button>
+        </form>
+
+        <div class="demo-box">
+          <p>Tài khoản demo</p>
+          <p>👤 <strong>user1</strong> / 🔑 <strong>123456</strong></p>
+          <p>👤 <strong>vantrong</strong> / 🔑 <strong>123456</strong></p>
+        </div>
+      </div>
+
+      <div class="footer">
+        <p>Powered by <strong>IT Service Center</strong> © 2026</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="spinner"></div>
+    <p>Đang đăng nhập...</p>
+  </div>
+
+  <script>
+    const validAccounts = {
+      "user1": "123456",
+      "vantrong": "123456"
+    };
+
+    const form = document.getElementById('loginForm');
+    const errorAlert = document.getElementById('errorAlert');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      errorAlert.style.display = 'none';
+
+      const u = document.getElementById('username').value.trim();
+      const p = document.getElementById('password').value.trim();
+
+      loadingOverlay.style.display = 'flex';
+
+      setTimeout(() => {
+        loadingOverlay.style.display = 'none';
+
+        if (validAccounts[u] && validAccounts[u] === p) {
+          localStorage.setItem('currentUser', u);
+          window.location.href = 'dashboard.html';
+        } else {
+          errorAlert.style.display = 'flex';
+        }
+      }, 600);
+    });
+  </script>
+</body>
+</html>
