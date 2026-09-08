@@ -415,7 +415,7 @@
       <div class="user-info">
         <div class="avatar" id="userAvatar">VT</div>
         <div>
-          <div style="font-size: 13px; font-weight: 600;" id="userDisplay">vantrong</div>
+          <div style="font-size: 13px; font-weight: 600;" id="userDisplay">admin</div>
           <div style="font-size: 11px; color: #94a3b8;">Kỹ thuật viên IT</div>
         </div>
       </div>
@@ -546,7 +546,7 @@
   </div>
 
   <script>
-    const user = localStorage.getItem('currentUser') || 'vantrong';
+    const user = localStorage.getItem('currentUser') || 'admin';
     document.getElementById('userDisplay').innerText = user;
     document.getElementById('userAvatar').innerText = user.slice(0, 2).toUpperCase();
 
