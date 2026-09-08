@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IT Service Center - Bảng điều khiển Ticket</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: #f1f5f9;
+      color: #1e293b;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 260px;
+      background: #0f172a;
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .brand {
+      padding: 24px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid #1e293b;
+    }
+
+    .brand i {
+      font-size: 24px;
+      color: #3b82f6;
+    }
+
+    .brand h2 {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .nav-menu {
+      list-style: none;
+      padding: 20px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-grow: 1;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .nav-link.active, .nav-link:hover {
+      background: #1e293b;
+      color: #38bdf8;
+    }
+
+    .user-profile {
+      padding: 16px 20px;
+      border-top: 1px solid #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      background: #3b82f6;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 14px;
+      text-transform: uppercase;
+    }
+
+    .btn-logout {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 16px;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .btn-logout:hover {
+      color: #ef4444;
+    }
+
+    .main-content {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    header {
+      background: #ffffff;
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .header-title h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .header-title p {
+      font-size: 13px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+
+    .btn-primary {
+      background: #2563eb;
+      color: #ffffff;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s;
+    }
+
+    .btn-primary:hover {
+      background: #1d4ed8;
+    }
+
+    .content-body {
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .stat-card {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .stat-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .stat-total .stat-icon { background: #eff6ff; color: #2563eb; }
+    .stat-pending .stat-icon { background: #fefce8; color: #ca8a04; }
+    .stat-progress .stat-icon { background: #f0fdf4; color: #16a34a; }
+    .stat-closed .stat-icon { background: #f8fafc; color: #64748b; }
+
+    .stat-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: #64748b;
+    }
+
+    .table-container {
+      background: #ffffff;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      overflow: hidden;
+    }
+
+    .table-toolbar {
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .search-box {
+      position: relative;
+      flex: 1;
+      max-width: 320px;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 9px 12px 9px 36px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      font-size: 14px;
+    }
+
+    .search-box i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .filter-select {
+      padding: 9px 12px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      font-size: 14px;
+      background: #ffffff;
+      color: #334155;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f8fafc;
+      padding: 14px 20px;
+      font-weight: 600;
+      color: #475569;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    td {
+      padding: 14px 20px;
+      border-bottom: 1px solid #f1f5f9;
+      color: #334155;
+      vertical-align: middle;
+    }
+
+    tr:hover td {
+      background: #f8fafc;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-new { background: #fef3c7; color: #b45309; }
+    .status-progress { background: #dbeafe; color: #1e40af; }
+    .status-done { background: #dcfce7; color: #15803d; }
+
+    .prio-high { color: #dc2626; font-weight: 600; }
+    .prio-mid { color: #d97706; font-weight: 600; }
+    .prio-low { color: #16a34a; font-weight: 600; }
+
+    .action-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 4px 8px;
+      font-size: 14px;
+      color: #64748b;
+      transition: color 0.2s;
+    }
+
+    .action-btn:hover {
+      color: #ef4444;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 999;
+    }
+
+    .modal-card {
+      background: #ffffff;
+      width: 100%;
+      max-width: 500px;
+      border-radius: 16px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+    }
+
+    .modal-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h3 {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: #94a3b8;
+    }
+
+    .modal-body {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      background: #f8fafc;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .input-control {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      font-size: 14px;
+    }
+
+    .btn-secondary {
+      background: #e2e8f0;
+      color: #334155;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="brand">
+      <i class="fa-solid fa-headset"></i>
+      <h2>ITSM Portal</h2>
+    </div>
+
+    <ul class="nav-menu">
+      <li><a href="#" class="nav-link active"><i class="fa-solid fa-ticket"></i> Danh sách Ticket</a></li>
+      <li><a href="#" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Báo cáo thống kê</a></li>
+      <li><a href="#" class="nav-link"><i class="fa-solid fa-users"></i> Quản lý thiết bị</a></li>
+      <li><a href="#" class="nav-link"><i class="fa-solid fa-gear"></i> Cấu hình hệ thống</a></li>
+    </ul>
+
+    <div class="user-profile">
+      <div class="user-info">
+        <div class="avatar" id="userAvatar">VT</div>
+        <div>
+          <div style="font-size: 13px; font-weight: 600;" id="userDisplay">vantrong</div>
+          <div style="font-size: 11px; color: #94a3b8;">Kỹ thuật viên IT</div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="logout()" title="Đăng xuất"><i class="fa-solid fa-right-from-bracket"></i></button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header>
+      <div class="header-title">
+        <h1>Quản trị Ticket Hỗ trợ</h1>
+        <p>Theo dõi và điều phối yêu cầu kỹ thuật toàn công ty</p>
+      </div>
+      <button class="btn-primary" onclick="openModal()">
+        <i class="fa-solid fa-plus"></i> Tạo Ticket Mới
+      </button>
+    </header>
+
+    <div class="content-body">
+      <section class="stats-grid">
+        <div class="stat-card stat-total">
+          <div class="stat-icon"><i class="fa-solid fa-clipboard-list"></i></div>
+          <div>
+            <div class="stat-value" id="countTotal">0</div>
+            <div class="stat-label">Tổng số Ticket</div>
+          </div>
+        </div>
+        <div class="stat-card stat-pending">
+          <div class="stat-icon"><i class="fa-solid fa-clock"></i></div>
+          <div>
+            <div class="stat-value" id="countNew">0</div>
+            <div class="stat-label">Chờ tiếp nhận</div>
+          </div>
+        </div>
+        <div class="stat-card stat-progress">
+          <div class="stat-icon"><i class="fa-solid fa-spinner"></i></div>
+          <div>
+            <div class="stat-value" id="countProgress">0</div>
+            <div class="stat-label">Đang xử lý</div>
+          </div>
+        </div>
+        <div class="stat-card stat-closed">
+          <div class="stat-icon"><i class="fa-solid fa-check-double"></i></div>
+          <div>
+            <div class="stat-value" id="countDone">0</div>
+            <div class="stat-label">Đã hoàn thành</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="table-container">
+        <div class="table-toolbar">
+          <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchInput" placeholder="Tìm theo tiêu đề, mã ticket..." onkeyup="renderTickets()">
+          </div>
+
+          <div class="filter-group">
+            <select class="filter-select" id="statusFilter" onchange="renderTickets()">
+              <option value="ALL">Tất cả trạng thái</option>
+              <option value="NEW">Chờ tiếp nhận</option>
+              <option value="IN_PROGRESS">Đang xử lý</option>
+              <option value="RESOLVED">Đã hoàn thành</option>
+            </select>
+
+            <select class="filter-select" id="prioFilter" onchange="renderTickets()">
+              <option value="ALL">Mọi mức độ</option>
+              <option value="HIGH">Ưu tiên cao</option>
+              <option value="MEDIUM">Trung bình</option>
+              <option value="LOW">Thấp</option>
+            </select>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Mã</th>
+              <th>Tiêu đề sự cố</th>
+              <th>Người yêu cầu</th>
+              <th>Mức ưu tiên</th>
+              <th>Trạng thái</th>
+              <th>Thời gian gửi</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody id="ticketListBody"></tbody>
+        </table>
+      </section>
+    </div>
+  </main>
+
+  <div class="modal-overlay" id="ticketModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Tạo Ticket Hỗ trợ Kỹ thuật</h3>
+        <button class="close-btn" onclick="closeModal()">&times;</button>
+      </div>
+      <form id="createTicketForm" onsubmit="handleCreateTicket(event)">
+        <div class="modal-body">
+          <div>
+            <label style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">Tiêu đề yêu cầu</label>
+            <input type="text" id="formTitle" class="input-control" placeholder="VD: Máy in phòng Kế toán không kết nối được" required>
+          </div>
+          <div>
+            <label style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">Người gửi yêu cầu</label>
+            <input type="text" id="formRequester" class="input-control" placeholder="VD: Nguyễn Văn A (Phòng Marketing)" required>
+          </div>
+          <div>
+            <label style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">Mức độ ưu tiên</label>
+            <select id="formPriority" class="input-control">
+              <option value="LOW">Thấp</option>
+              <option value="MEDIUM" selected>Trung bình</option>
+              <option value="HIGH">Khẩn cấp (High)</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">Mô tả chi tiết</label>
+            <textarea id="formDesc" rows="3" class="input-control" placeholder="Mô tả lỗi hoặc triệu chứng gặp phải..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="closeModal()">Hủy bỏ</button>
+          <button type="submit" class="btn-primary">Gửi Ticket</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const user = localStorage.getItem('currentUser') || 'vantrong';
+    document.getElementById('userDisplay').innerText = user;
+    document.getElementById('userAvatar').innerText = user.slice(0, 2).toUpperCase();
+
+    const defaultTickets = [
+      { id: "TK-1001", title: "Màn hình máy bàn không lên nguồn", requester: "user1", priority: "HIGH", status: "NEW", date: "2026-09-08 08:30" },
+      { id: "TK-1002", title: "Cấp tài khoản VPN làm việc từ xa", requester: "hoa.nguyen", priority: "MEDIUM", status: "IN_PROGRESS", date: "2026-09-08 09:15" },
+      { id: "TK-1003", title: "Cài đặt phần mềm kế toán MISA", requester: "thao.tran", priority: "LOW", status: "RESOLVED", date: "2026-09-07 15:40" },
+      { id: "TK-1004", title: "Lỗi mạng Wi-Fi tầng 3 chập chờn", requester: "tuan.le", priority: "HIGH", status: "IN_PROGRESS", date: "2026-09-08 10:05" }
+    ];
+
+    let tickets = JSON.parse(localStorage.getItem('itsm_tickets')) || defaultTickets;
+
+    function saveAndRender() {
+      localStorage.setItem('itsm_tickets', JSON.stringify(tickets));
+      renderTickets();
+    }
+
+    function renderTickets() {
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const statusFilter = document.getElementById('statusFilter').value;
+      const prioFilter = document.getElementById('prioFilter').value;
+
+      const tbody = document.getElementById('ticketListBody');
+      tbody.innerHTML = '';
+
+      let newCount = 0, progressCount = 0, doneCount = 0;
+
+      tickets.forEach(t => {
+        if (t.status === 'NEW') newCount++;
+        if (t.status === 'IN_PROGRESS') progressCount++;
+        if (t.status === 'RESOLVED') doneCount++;
+      });
+
+      document.getElementById('countTotal').innerText = tickets.length;
+      document.getElementById('countNew').innerText = newCount;
+      document.getElementById('countProgress').innerText = progressCount;
+      document.getElementById('countDone').innerText = doneCount;
+
+      const filtered = tickets.filter(t => {
+        const matchSearch = t.title.toLowerCase().includes(search) || t.id.toLowerCase().includes(search) || t.requester.toLowerCase().includes(search);
+        const matchStatus = statusFilter === 'ALL' || t.status === statusFilter;
+        const matchPrio = prioFilter === 'ALL' || t.priority === prioFilter;
+        return matchSearch && matchStatus && matchPrio;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #94a3b8; padding: 24px;">Không tìm thấy ticket phù hợp.</td></tr>`;
+        return;
+      }
+
+      filtered.forEach(t => {
+        const tr = document.createElement('tr');
+
+        let statusBadge = '';
+        if (t.status === 'NEW') statusBadge = '<span class="badge status-new">Chờ tiếp nhận</span>';
+        else if (t.status === 'IN_PROGRESS') statusBadge = '<span class="badge status-progress">Đang xử lý</span>';
+        else if (t.status === 'RESOLVED') statusBadge = '<span class="badge status-done">Đã hoàn thành</span>';
+
+        let prioClass = t.priority === 'HIGH' ? 'prio-high' : (t.priority === 'MEDIUM' ? 'prio-mid' : 'prio-low');
+        let prioLabel = t.priority === 'HIGH' ? 'Khẩn cấp' : (t.priority === 'MEDIUM' ? 'Trung bình' : 'Thấp');
+
+        tr.innerHTML = `
+          <td><strong>#${t.id}</strong></td>
+          <td>${t.title}</td>
+          <td>${t.requester}</td>
+          <td><span class="${prioClass}">${prioLabel}</span></td>
+          <td>${statusBadge}</td>
+          <td style="font-size: 13px; color: #64748b;">${t.date}</td>
+          <td>
+            <button class="action-btn" title="Chuyển trạng thái" onclick="cycleStatus('${t.id}')">
+              <i class="fa-solid fa-arrows-rotate"></i>
+            </button>
+            <button class="action-btn" title="Xóa ticket" onclick="deleteTicket('${t.id}')">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openModal() {
+      document.getElementById('ticketModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('ticketModal').style.display = 'none';
+      document.getElementById('createTicketForm').reset();
+    }
+
+    function handleCreateTicket(e) {
+      e.preventDefault();
+      const title = document.getElementById('formTitle').value.trim();
+      const requester = document.getElementById('formRequester').value.trim();
+      const priority = document.getElementById('formPriority').value;
+
+      const now = new Date();
+      const dateStr = now.toISOString().slice(0, 10) + ' ' + now.toTimeString().slice(0, 5);
+      const newId = 'TK-' + Math.floor(1000 + Math.random() * 9000);
+
+      tickets.unshift({
+        id: newId,
+        title: title,
+        requester: requester,
+        priority: priority,
+        status: 'NEW',
+        date: dateStr
+      });
+
+      closeModal();
+      saveAndRender();
+    }
+
+    function cycleStatus(id) {
+      const target = tickets.find(t => t.id === id);
+      if (!target) return;
+      if (target.status === 'NEW') target.status = 'IN_PROGRESS';
+      else if (target.status === 'IN_PROGRESS') target.status = 'RESOLVED';
+      else target.status = 'NEW';
+      saveAndRender();
+    }
+
+    function deleteTicket(id) {
+      if (confirm('Bạn có chắc muốn xóa ticket #' + id + '?')) {
+        tickets = tickets.filter(t => t.id !== id);
+        saveAndRender();
+      }
+    }
+
+    function logout() {
+      if (confirm('Bạn muốn đăng xuất về trang đăng nhập?')) {
+        localStorage.removeItem('currentUser');
+        window.location.href = 'index.html';
+      }
+    }
+
+    renderTickets();
+  </script>
+</body>
+</html>
