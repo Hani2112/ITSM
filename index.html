@@ -1,339 +1,896 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IT Service Center - Cổng hỗ trợ kỹ thuật nội bộ</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    }
+<title>ITSM Portal</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: sidebar điều hướng cố định bên trái, vùng làm việc bên phải gồm header, thẻ số liệu và bảng ticket. */
+:root {
+  --bg: #17191d;
+  --surface: #101214;
+  --raised: #1d2025;
+  --line: #2a2e35;
+  --fg: #e9ecf1;
+  --muted: #9aa3b2;
+  --accent: #2f6bff;
+  --accent-fg: #ffffff;
+  --side: #0d1a38;
+  --side-fg: #e6ebf7;
+  --side-muted: #a9b4cf;
+  --side-active: #1b3270;
+  --side-line: #1c2c55;
+  --c-pending: #f0a020;
+  --c-progress: #6f8cff;
+  --c-done: #34c36b;
+  --c-urgent: #ff5a47;
+  --c-high: #ff8a1f;
+  --c-medium: #e0a100;
+  --c-low: #34c36b;
+  --c-fault: #ff5a47;
+  --c-maint: #f0a020;
+  --c-ok: #34c36b;
+  --font: "Be Vietnam Pro", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --mono: ui-monospace, "Cascadia Mono", "SF Mono", Consolas, monospace;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #eef1f6;
+    --surface: #ffffff;
+    --raised: #f6f8fb;
+    --line: #d9dfe9;
+    --fg: #18202e;
+    --muted: #5b667a;
+    --accent: #1f55e0;
+    --c-pending: #a86500;
+    --c-progress: #2f4fd0;
+    --c-done: #11803c;
+    --c-urgent: #cf2d1a;
+    --c-high: #b85a00;
+    --c-medium: #8a6700;
+    --c-low: #11803c;
+    --c-fault: #cf2d1a;
+    --c-maint: #a86500;
+    --c-ok: #11803c;
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #eef1f6;
+  --surface: #ffffff;
+  --raised: #f6f8fb;
+  --line: #d9dfe9;
+  --fg: #18202e;
+  --muted: #5b667a;
+  --accent: #1f55e0;
+  --c-pending: #a86500;
+  --c-progress: #2f4fd0;
+  --c-done: #11803c;
+  --c-urgent: #cf2d1a;
+  --c-high: #b85a00;
+  --c-medium: #8a6700;
+  --c-low: #11803c;
+  --c-fault: #cf2d1a;
+  --c-maint: #a86500;
+  --c-ok: #11803c;
+  color-scheme: light;
+}
 
-    body {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-      padding: 20px;
-    }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { min-height: 100%; }
+body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.5;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-    .container {
-      display: flex;
-      width: 100%;
-      max-width: 1000px;
-      min-height: 600px;
-      background: #ffffff;
-      border-radius: 20px;
-      overflow: hidden;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45);
-    }
+.app { display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: 100vh; }
 
-    .hero-panel {
-      flex: 1.1;
-      background: linear-gradient(145deg, #1e40af 0%, #3b82f6 100%);
-      color: #ffffff;
-      padding: 50px 40px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      position: relative;
-    }
+/* Sidebar */
+.side {
+  background: var(--side);
+  color: var(--side-fg);
+  padding-block: 0 24px;
+  padding-left: max(0px, env(safe-area-inset-left, 0px));
+  display: flex; flex-direction: column;
+}
+.brand { display: flex; align-items: center; gap: 12px; padding: 22px 20px; border-bottom: 1px solid var(--side-line); font-weight: 700; font-size: 18px; letter-spacing: .01em; }
+.brand svg { width: 26px; height: 26px; color: #5b8cff; flex: none; }
+.nav { display: flex; flex-direction: column; gap: 4px; padding: 20px 12px; }
+.nav button {
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  padding: 11px 16px; border: 0; border-radius: 8px;
+  background: transparent; color: var(--side-muted); text-align: left; font-weight: 500;
+}
+.nav button svg { width: 18px; height: 18px; flex: none; }
+.nav button:hover { background: var(--side-line); color: var(--side-fg); }
+.nav button[aria-current="page"] { background: var(--side-active); color: #7da2ff; font-weight: 600; }
 
-    .brand-icon {
-      font-size: 40px;
-      margin-bottom: 20px;
-      display: inline-block;
-      color: #93c5fd;
-    }
+/* Main */
+.main { min-width: 0; padding-right: max(0px, env(safe-area-inset-right, 0px)); }
+.top {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  padding: 22px 32px; background: var(--surface); border-bottom: 1px solid var(--line);
+}
+.top h1 { margin: 0; font-size: 22px; line-height: 1.25; font-weight: 700; text-wrap: balance; }
+.top p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+.content { padding: 32px; display: flex; flex-direction: column; gap: 24px; }
 
-    .hero-title {
-      font-size: 32px;
-      font-weight: 700;
-      margin-bottom: 12px;
-      line-height: 1.2;
-    }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px; justify-content: center;
+  padding: 9px 16px; border-radius: 6px; border: 1px solid var(--line);
+  background: var(--raised); font-weight: 500;
+}
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); font-weight: 600; }
+.btn.primary:hover { filter: brightness(1.1); }
+.btn.danger { background: var(--c-urgent); border-color: var(--c-urgent); color: #fff; font-weight: 600; }
+.btn svg { width: 16px; height: 16px; }
 
-    .hero-desc {
-      font-size: 15px;
-      color: #dbeafe;
-      line-height: 1.6;
-      margin-bottom: 40px;
-    }
+/* Stats */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; }
+.stat { display: flex; align-items: center; gap: 16px; padding: 20px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+.stat .ico { width: 48px; height: 48px; border-radius: 10px; display: grid; place-items: center; flex: none; color: var(--c); background: color-mix(in srgb, var(--c) 16%, transparent); }
+.stat .ico svg { width: 22px; height: 22px; }
+.stat b { display: block; font-size: 24px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.stat span { color: var(--muted); font-size: 13px; }
 
-    .feature-list {
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
+/* Panel & table */
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; min-width: 0; }
+.toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--line); }
+.search { position: relative; flex: 1 1 280px; max-width: 360px; }
+.search svg { position: absolute; left: 12px; top: 50%; translate: 0 -50%; width: 16px; height: 16px; color: var(--muted); }
+.search input { padding-left: 36px; }
+.filters { display: flex; gap: 10px; flex-wrap: wrap; }
+input, select, textarea {
+  width: 100%; padding: 9px 12px; background: var(--raised);
+  border: 1px solid var(--line); border-radius: 6px;
+}
+select { width: auto; }
+textarea { resize: vertical; min-height: 88px; }
+input::placeholder, textarea::placeholder { color: var(--muted); }
 
-    .feature-item {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      font-size: 14px;
-      color: #f1f5f9;
-      background: rgba(255, 255, 255, 0.1);
-      padding: 12px 16px;
-      border-radius: 12px;
-      backdrop-filter: blur(5px);
-    }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; min-width: 780px; }
+th { text-align: left; padding: 14px 20px; color: var(--muted); font-weight: 500; font-size: 13px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td { padding: 16px 20px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover td { background: color-mix(in srgb, var(--fg) 3%, transparent); }
+.code { font-weight: 700; white-space: nowrap; }
+.mono { font-family: var(--mono); font-size: 12.5px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.link { background: none; border: 0; padding: 0; text-align: left; color: var(--fg); }
+.link:hover { color: var(--accent); text-decoration: underline; }
+.prio { font-weight: 600; color: var(--c); }
+.chip { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; color: var(--c); background: color-mix(in srgb, var(--c) 18%, transparent); }
+.acts { display: flex; gap: 6px; }
+.icon-btn { width: 32px; height: 32px; display: grid; place-items: center; border: 0; background: transparent; color: var(--muted); border-radius: 6px; }
+.icon-btn:hover { color: var(--fg); background: var(--raised); }
+.icon-btn.del:hover { color: var(--c-urgent); }
+.icon-btn svg { width: 16px; height: 16px; }
+.empty { text-align: center; color: var(--muted); padding: 40px 20px; }
 
-    .feature-item span:first-child {
-      font-size: 18px;
-    }
+.p-urgent { --c: var(--c-urgent); } .p-high { --c: var(--c-high); } .p-medium { --c: var(--c-medium); } .p-low { --c: var(--c-low); }
+.s-pending { --c: var(--c-pending); } .s-progress { --c: var(--c-progress); } .s-done { --c: var(--c-done); }
+.d-ok { --c: var(--c-ok); } .d-maint { --c: var(--c-maint); } .d-fault { --c: var(--c-fault); }
 
-    .login-panel {
-      flex: 1;
-      padding: 50px 45px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      background: #ffffff;
-    }
+/* Reports */
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.card { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.card h2 { margin: 0; font-size: 15px; font-weight: 600; }
+.bar { display: grid; grid-template-columns: 120px minmax(0, 1fr) 28px; gap: 12px; align-items: center; font-size: 13px; }
+.bar .track { height: 8px; background: var(--raised); border-radius: 99px; overflow: hidden; }
+.bar .track i { display: block; height: 100%; border-radius: 99px; background: var(--c, var(--accent)); }
+.bar b { text-align: right; font-variant-numeric: tabular-nums; }
+.kpi { display: flex; align-items: baseline; gap: 10px; }
+.kpi b { font-size: 36px; line-height: 1; font-variant-numeric: tabular-nums; }
+.kpi span { color: var(--muted); }
 
-    .login-header h2 {
-      font-size: 26px;
-      color: #0f172a;
-      margin-bottom: 8px;
-      font-weight: 700;
-    }
+/* Config */
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.field label, .lbl { font-size: 12.5px; color: var(--muted); font-weight: 500; }
+.field select { width: 100%; }
+.switch { display: flex; align-items: center; gap: 10px; }
+.switch input { width: auto; accent-color: var(--accent); }
+.row-end { display: flex; gap: 10px; flex-wrap: wrap; }
 
-    .login-header p {
-      font-size: 14px;
-      color: #64748b;
-    }
+/* Dialog */
+dialog { background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 12px; padding: 0; width: min(520px, calc(100vw - 32px)); }
+dialog::backdrop { background: rgba(5, 8, 15, .6); }
+.dlg { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+.dlg h2 { margin: 0; font-size: 18px; }
+.dlg .foot { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+.kv { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 8px 16px; margin: 0; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; overflow-wrap: anywhere; }
+.late { color: var(--c-urgent); font-weight: 600; }
 
-    .error-alert {
-      display: none;
-      align-items: center;
-      gap: 10px;
-      background: #fee2e2;
-      color: #dc2626;
-      padding: 12px 16px;
-      border-radius: 10px;
-      font-size: 13px;
-      margin: 20px 0 10px;
-    }
+.toast { position: fixed; left: 50%; translate: -50% 0; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); background: var(--fg); color: var(--bg); padding: 10px 18px; border-radius: 8px; font-weight: 500; z-index: 50; }
 
-    .form-group {
-      margin-top: 18px;
-    }
+/* Login */
+.login { min-height: 100vh; display: grid; place-items: center; padding-block: 32px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); background: radial-gradient(1200px 600px at 20% 0%, color-mix(in srgb, var(--accent) 14%, var(--bg)), var(--bg)); }
+.login-card { width: min(1000px, 100%); display: grid; grid-template-columns: 1.05fr 1fr; border-radius: 18px; overflow: hidden; border: 1px solid var(--line); box-shadow: 0 24px 60px rgba(0, 0, 0, .35); }
+.login-brand { padding: 40px; color: #fff; background: linear-gradient(135deg, #1f3fae 0%, #2f6bff 100%); display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.login-brand .logo { width: 44px; height: 44px; color: #a9c4ff; }
+.login-brand h1 { margin: 6px 0 0; font-size: 30px; line-height: 1.15; text-wrap: balance; }
+.login-brand p { margin: 0; color: #dbe6ff; }
+.feat { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.feat li { display: flex; align-items: center; gap: 12px; padding: 13px 16px; border-radius: 10px; background: rgba(255, 255, 255, .12); font-size: 13.5px; }
+.feat svg { width: 18px; height: 18px; flex: none; }
+.login-form { background: var(--surface); padding: 40px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.login-form h2 { margin: 0; font-size: 24px; }
+.login-form .sub { margin: -8px 0 6px; color: var(--muted); font-size: 13px; }
+.login-form .btn.big { padding: 12px 16px; }
+.err { color: var(--c-urgent); font-size: 13px; font-weight: 500; }
+.demo { border: 1px dashed var(--line); border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.demo button { display: flex; gap: 8px; align-items: center; background: none; border: 0; padding: 3px 0; text-align: left; color: var(--fg); }
+.demo button:hover { color: var(--accent); }
+.demo code { font-family: var(--mono); color: var(--muted); }
+.login-foot { margin-top: auto; padding-top: 12px; text-align: center; color: var(--muted); font-size: 12px; }
 
-    .form-group label {
-      display: block;
-      font-size: 13px;
-      font-weight: 600;
-      color: #334155;
-      margin-bottom: 6px;
-    }
+/* Menu tài khoản ở góc phải header */
+.top-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.acct { position: relative; }
+.acct-btn { display: flex; align-items: center; gap: 10px; padding: 5px 12px 5px 5px; border: 1px solid var(--line); background: var(--raised); border-radius: 999px; }
+.acct-btn:hover { border-color: var(--muted); }
+.acct-btn .av { width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: var(--accent-fg); display: grid; place-items: center; font-weight: 700; font-size: 13px; flex: none; }
+.acct-name { font-weight: 500; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.acct-btn svg { width: 14px; height: 14px; color: var(--muted); flex: none; }
+.acct-menu { position: absolute; right: 0; top: calc(100% + 8px); width: 260px; max-width: calc(100vw - 32px); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 12px 32px rgba(0, 0, 0, .35); padding: 6px; z-index: 20; display: flex; flex-direction: column; }
+.acct-head { padding: 10px 12px; display: flex; flex-direction: column; border-bottom: 1px solid var(--line); margin-bottom: 6px; min-width: 0; }
+.acct-head b, .acct-head span { overflow-wrap: anywhere; }
+.acct-head span { color: var(--muted); font-size: 12.5px; }
+.acct-menu button { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border: 0; background: none; border-radius: 6px; text-align: left; width: 100%; }
+.acct-menu button:hover { background: var(--raised); }
+.acct-menu button.out:hover { color: var(--c-urgent); }
+.acct-menu button svg { width: 16px; height: 16px; color: var(--muted); flex: none; }
+@media (max-width: 520px) { .acct-name { display: none; } .acct-btn { padding-right: 8px; } }
 
-    .form-input {
-      width: 100%;
-      padding: 12px 14px;
-      border: 1.5px solid #cbd5e1;
-      border-radius: 10px;
-      font-size: 14px;
-      transition: all 0.2s;
-    }
+@media (max-width: 760px) {
+  .login-card { grid-template-columns: minmax(0, 1fr); }
+  .login-brand, .login-form { padding: 28px 22px; }
+  .feat { display: none; }
+}
+@media (max-width: 820px) {
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .side { padding-right: max(0px, env(safe-area-inset-right, 0px)); }
+  .brand { padding: 14px max(16px, env(safe-area-inset-left, 0px)); border-bottom: 0; }
+  .nav { flex-direction: row; overflow-x: auto; padding: 0 max(12px, env(safe-area-inset-left, 0px)) 12px; }
+  .nav button { width: auto; white-space: nowrap; }
+  .main { padding-left: max(0px, env(safe-area-inset-left, 0px)); }
+  .top, .content { padding: 18px 16px; }
+  .toolbar { padding: 14px 16px; }
+  .bar { grid-template-columns: 96px minmax(0, 1fr) 28px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
 
-    .form-input:focus {
-      outline: none;
-      border-color: #2563eb;
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-    }
+<div class="login" id="login">
+  <div class="login-card">
+    <div class="login-brand">
+      <svg class="logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><path d="M3 14h3v5H4a1 1 0 0 1-1-1z"/><path d="M21 14h-3v5h2a1 1 0 0 0 1-1z"/><path d="M18 19c0 1.5-2 2.5-5 2.5"/></svg>
+      <h1>IT Service Center</h1>
+      <p>Cổng hỗ trợ kỹ thuật nội bộ: gửi yêu cầu, theo dõi tiến độ và nhận cập nhật ngay lập tức.</p>
+      <ul class="feat">
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9a2 2 0 0 0 0 6v2a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-2a2 2 0 0 1 0-6V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1z"/><path d="M9 10h6M9 14h4"/></svg>Tạo ticket hỗ trợ chỉ trong vài giây</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Theo dõi trạng thái xử lý theo thời gian thực</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>Nhận email cập nhật tiến độ tự động</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Bảo mật và xác thực nội bộ</li>
+      </ul>
+    </div>
+    <form class="login-form" id="loginForm" autocomplete="off">
+      <h2>Chào mừng trở lại</h2>
+      <p class="sub">Đăng nhập để tiếp tục sử dụng IT Service Center</p>
+      <div class="field"><label for="lUser">Tên đăng nhập</label><input id="lUser" required autocomplete="username" autocapitalize="none" spellcheck="false"></div>
+      <div class="field"><label for="lPass">Mật khẩu</label><input id="lPass" type="password" required autocomplete="current-password"></div>
+      <div class="err" id="lErr" role="alert" hidden></div>
+      <button type="submit" class="btn primary big">Đăng nhập</button>
+      <div class="demo">
+        <b>Tài khoản demo (bấm để điền sẵn)</b>
+        <button type="button" data-u="user1" data-p="123456">user1 / <code>123456</code> · Người dùng</button>
+        <button type="button" data-u="admin" data-p="123456">admin / <code>123456</code> · Quản trị viên</button>
+        <button type="button" id="demoReset" style="color:var(--muted);font-size:12px">Đặt lại tài khoản demo</button>
+      </div>
+      <div class="login-foot">Powered by IT Service Center © 2026</div>
+    </form>
+  </div>
+</div>
 
-    .btn-submit {
-      width: 100%;
-      margin-top: 24px;
-      padding: 13px;
-      background: #2563eb;
-      color: #ffffff;
-      border: none;
-      border-radius: 10px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
+<div class="app" id="app" hidden>
+  <aside class="side">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><path d="M3 14h3v5H4a1 1 0 0 1-1-1z"/><path d="M21 14h-3v5h2a1 1 0 0 0 1-1z"/><path d="M18 19c0 1.5-2 2.5-5 2.5"/></svg>
+      ITSM Portal
+    </div>
+    <nav class="nav" aria-label="Điều hướng chính">
+      <button type="button" data-view="tickets"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9a2 2 0 0 0 0 6v2a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-2a2 2 0 0 1 0-6V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1z"/><path d="M9 10h6M9 14h4"/></svg>Danh sách Ticket</button>
+      <button type="button" data-view="reports" data-role="admin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12A9 9 0 1 1 12 3v9z"/><path d="M15 3.5A9 9 0 0 1 20.5 9H15z"/></svg>Báo cáo thống kê</button>
+      <button type="button" data-view="devices" data-role="admin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>Quản lý thiết bị</button>
+      <button type="button" data-view="config" data-role="admin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Cấu hình hệ thống</button>
+    </nav>
+  </aside>
 
-    .btn-submit:hover {
-      background: #1d4ed8;
-    }
-
-    .demo-box {
-      margin-top: 24px;
-      background: #f8fafc;
-      border: 1px dashed #cbd5e1;
-      padding: 14px;
-      border-radius: 10px;
-      font-size: 13px;
-      color: #475569;
-    }
-
-    .demo-box p:first-child {
-      font-weight: 600;
-      color: #1e293b;
-      margin-bottom: 6px;
-    }
-
-    .footer {
-      text-align: center;
-      font-size: 12px;
-      color: #94a3b8;
-      margin-top: 20px;
-    }
-
-    .loading-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.7);
-      backdrop-filter: blur(4px);
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      color: #ffffff;
-      z-index: 1000;
-    }
-
-    .spinner {
-      width: 45px;
-      height: 45px;
-      border: 4px solid rgba(255, 255, 255, 0.2);
-      border-top-color: #60a5fa;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin-bottom: 12px;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    @media (max-width: 820px) {
-      .container {
-        flex-direction: column;
-      }
-      .hero-panel {
-        padding: 30px 25px;
-      }
-      .login-panel {
-        padding: 35px 25px;
-      }
-    }
-  </style>
-</head>
-<body>
-
-  <div class="container">
-    <div class="hero-panel">
+  <div class="main">
+    <header class="top">
       <div>
-        <div class="brand-icon">
-          <i class="fa-solid fa-headset"></i>
-        </div>
-        <h1 class="hero-title">IT Service Center</h1>
-        <p class="hero-desc">Cổng hỗ trợ kỹ thuật nội bộ — gửi yêu cầu, theo dõi tiến độ và nhận cập nhật ngay lập tức.</p>
-
-        <div class="feature-list">
-          <div class="feature-item">
-            <span>🎫</span>
-            <span>Tạo ticket hỗ trợ chỉ trong vài giây</span>
-          </div>
-          <div class="feature-item">
-            <span>📊</span>
-            <span>Theo dõi trạng thái xử lý realtime</span>
-          </div>
-          <div class="feature-item">
-            <span>📧</span>
-            <span>Nhận email cập nhật tiến độ tự động</span>
-          </div>
-          <div class="feature-item">
-            <span>🔒</span>
-            <span>Bảo mật &amp; xác thực nội bộ</span>
-          </div>
+        <h1 id="pageTitle">Quản trị Ticket Hỗ trợ</h1>
+        <p id="pageSub">Theo dõi và điều phối yêu cầu kỹ thuật toàn công ty</p>
+      </div>
+      <div class="top-actions">
+      <button type="button" class="btn primary" id="btnNew"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span id="btnNewLabel">Tạo Ticket Mới</span></button>
+      <div class="acct" id="acct">
+        <button type="button" class="acct-btn" id="acctBtn" aria-haspopup="menu" aria-expanded="false" aria-controls="acctMenu">
+          <span class="av" id="uAv" aria-hidden="true"></span>
+          <span class="acct-name" id="uName"></span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="acct-menu" id="acctMenu" role="menu" hidden>
+          <div class="acct-head"><b id="uName2"></b><span id="uRole"></span><span id="uMail"></span></div>
+          <button type="button" role="menuitem" id="miEdit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Chỉnh sửa tài khoản</button>
+          <button type="button" role="menuitem" class="out" id="miLogout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>Đăng xuất</button>
         </div>
       </div>
-    </div>
+      </div>
+    </header>
 
-    <div class="login-panel">
-      <div>
-        <div class="login-header">
-          <h2>Chào mừng trở lại 👋</h2>
-          <p>Đăng nhập để tiếp tục sử dụng IT Service Center</p>
-        </div>
-
-        <div id="errorAlert" class="error-alert">
-          <i class="fa-solid fa-circle-exclamation"></i>
-          <span>Tên đăng nhập hoặc mật khẩu không đúng.</span>
-        </div>
-
-        <form id="loginForm">
-          <div class="form-group">
-            <label for="username">Tên đăng nhập</label>
-            <input type="text" id="username" class="form-input" placeholder="Ví dụ: user1 hoặc admin" required>
+    <div class="content">
+      <!-- Tickets -->
+      <section id="view-tickets" class="view" style="display:flex;flex-direction:column;gap:24px">
+        <div class="stats" id="stats"></div>
+        <div class="panel">
+          <div class="toolbar">
+            <div class="search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              <input type="search" id="q" placeholder="Tìm theo tiêu đề, mã ticket..." aria-label="Tìm ticket">
+            </div>
+            <div class="filters">
+              <select id="fStatus" aria-label="Lọc theo trạng thái"><option value="">Tất cả trạng thái</option><option value="pending">Chờ tiếp nhận</option><option value="progress">Đang xử lý</option><option value="done">Đã hoàn thành</option></select>
+              <select id="fPrio" aria-label="Lọc theo mức độ"><option value="">Mọi mức độ</option><option value="urgent">Khẩn cấp</option><option value="high">Cao</option><option value="medium">Trung bình</option><option value="low">Thấp</option></select>
+            </div>
           </div>
-
-          <div class="form-group">
-            <label for="password">Mật khẩu</label>
-            <input type="password" id="password" class="form-input" placeholder="Nhập mật khẩu" required>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Mã</th><th>Tiêu đề sự cố</th><th>Người yêu cầu</th><th>Mức ưu tiên</th><th>Trạng thái</th><th>Thời gian gửi</th><th>Hành động</th></tr></thead>
+              <tbody id="tbTickets"></tbody>
+            </table>
           </div>
+        </div>
+      </section>
 
-          <button type="submit" class="btn-submit">Đăng nhập</button>
+      <!-- Reports -->
+      <section id="view-reports" class="view" hidden>
+        <div class="grid2" id="reportGrid"></div>
+      </section>
+
+      <!-- Devices -->
+      <section id="view-devices" class="view" hidden>
+        <div class="panel">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Mã tài sản</th><th>Tên thiết bị</th><th>Loại</th><th>Người dùng / Vị trí</th><th>Tình trạng</th><th>Hành động</th></tr></thead>
+              <tbody id="tbDevices"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Config -->
+      <section id="view-config" class="view" hidden>
+        <form class="panel card" id="cfgForm" style="gap:22px">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <h2>Thời hạn xử lý theo SLA (giờ)</h2>
+            <div class="form-grid">
+              <div class="field"><label for="sla-urgent">Khẩn cấp</label><input type="number" min="1" id="sla-urgent"></div>
+              <div class="field"><label for="sla-high">Cao</label><input type="number" min="1" id="sla-high"></div>
+              <div class="field"><label for="sla-medium">Trung bình</label><input type="number" min="1" id="sla-medium"></div>
+              <div class="field"><label for="sla-low">Thấp</label><input type="number" min="1" id="sla-low"></div>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="field"><label for="cfgCats">Loại sự cố (phân tách bằng dấu phẩy)</label><input id="cfgCats"></div>
+            <div class="field"><label for="cfgPrio">Mức ưu tiên mặc định</label>
+              <select id="cfgPrio"><option value="urgent">Khẩn cấp</option><option value="high">Cao</option><option value="medium">Trung bình</option><option value="low">Thấp</option></select></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <label class="switch"><input type="checkbox" id="cfgMail"> Gửi email cho người yêu cầu khi ticket đổi trạng thái</label>
+            <label class="switch"><input type="checkbox" id="cfgAuto"> Tự động chuyển ticket khẩn cấp sang "Đang xử lý"</label>
+          </div>
+          <div class="row-end">
+            <button type="submit" class="btn primary">Lưu cấu hình</button>
+            <button type="button" class="btn" id="btnReset">Khôi phục dữ liệu mẫu</button>
+          </div>
         </form>
-
-        <div class="demo-box">
-          <p>Tài khoản demo</p>
-          <p>👤 <strong>user1</strong> / 🔑 <strong>123456</strong></p>
-          <p>👤 <strong>admin</strong> / 🔑 <strong>123456</strong></p>
-        </div>
-      </div>
-
-      <div class="footer">
-        <p>Powered by <strong>IT Service Center</strong> © 2026</p>
-      </div>
+      </section>
     </div>
   </div>
+</div>
 
-  <div id="loadingOverlay" class="loading-overlay">
-    <div class="spinner"></div>
-    <p>Đang đăng nhập...</p>
-  </div>
+<dialog id="dlgTicket" aria-labelledby="dtTitle">
+  <form class="dlg" id="formTicket">
+    <h2 id="dtTitle">Tạo ticket mới</h2>
+    <div class="field"><label for="tTitle">Tiêu đề sự cố</label><input id="tTitle" required maxlength="120" placeholder="Ví dụ: Máy in tầng 2 không nhận lệnh in"></div>
+    <div class="form-grid">
+      <div class="field"><label for="tUser">Người yêu cầu</label><input id="tUser" required maxlength="40" placeholder="user.name"></div>
+      <div class="field"><label for="tPrio">Mức ưu tiên</label><select id="tPrio"><option value="urgent">Khẩn cấp</option><option value="high">Cao</option><option value="medium">Trung bình</option><option value="low">Thấp</option></select></div>
+      <div class="field"><label for="tCat">Loại sự cố</label><select id="tCat"></select></div>
+    </div>
+    <div class="field"><label for="tDesc">Mô tả chi tiết</label><textarea id="tDesc" maxlength="1000" placeholder="Hiện tượng, thời điểm xảy ra, thông báo lỗi..."></textarea></div>
+    <div class="foot"><button type="button" class="btn" data-close>Hủy</button><button type="submit" class="btn primary">Tạo ticket</button></div>
+  </form>
+</dialog>
 
-  <script>
-    const validAccounts = {
-      "user1": "123456",
-      "admin": "123456"
+<dialog id="dlgDetail" aria-labelledby="ddTitle">
+  <div class="dlg" id="detailBody"></div>
+</dialog>
+
+<dialog id="dlgDevice" aria-labelledby="ddvTitle">
+  <form class="dlg" id="formDevice">
+    <h2 id="ddvTitle">Thêm thiết bị</h2>
+    <div class="form-grid">
+      <div class="field"><label for="vTag">Mã tài sản</label><input id="vTag" required maxlength="20" placeholder="PC-0150"></div>
+      <div class="field"><label for="vType">Loại</label><select id="vType"><option>Desktop</option><option>Laptop</option><option>Server</option><option>Switch</option><option>Access Point</option><option>Máy in</option></select></div>
+    </div>
+    <div class="field"><label for="vName">Tên thiết bị</label><input id="vName" required maxlength="80" placeholder="Dell OptiPlex 7090"></div>
+    <div class="field"><label for="vUser">Người dùng / Vị trí</label><input id="vUser" required maxlength="60" placeholder="user1 hoặc Tầng 3"></div>
+    <div class="foot"><button type="button" class="btn" data-close>Hủy</button><button type="submit" class="btn primary">Thêm thiết bị</button></div>
+  </form>
+</dialog>
+
+<dialog id="dlgAccount" aria-labelledby="daTitle">
+  <form class="dlg" id="formAccount" autocomplete="off">
+    <h2 id="daTitle">Chỉnh sửa tài khoản</h2>
+    <div class="form-grid">
+      <div class="field"><label for="aUser">Tên đăng nhập</label><input id="aUser" readonly></div>
+      <div class="field"><label for="aRole">Vai trò</label><input id="aRole" readonly></div>
+    </div>
+    <div class="field"><label for="aName">Tên hiển thị</label><input id="aName" required maxlength="40"></div>
+    <div class="field"><label for="aMail">Email</label><input id="aMail" type="email" maxlength="80" placeholder="ten@congty.vn"></div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <span class="lbl">Đổi mật khẩu (bỏ trống nếu không đổi)</span>
+      <div class="field"><label for="aOld">Mật khẩu hiện tại</label><input id="aOld" type="password" autocomplete="current-password"></div>
+      <div class="form-grid">
+        <div class="field"><label for="aNew">Mật khẩu mới</label><input id="aNew" type="password" autocomplete="new-password"></div>
+        <div class="field"><label for="aNew2">Nhập lại mật khẩu mới</label><input id="aNew2" type="password" autocomplete="new-password"></div>
+      </div>
+    </div>
+    <div class="err" id="aErr" role="alert" hidden></div>
+    <div class="foot"><button type="button" class="btn" data-close>Hủy</button><button type="submit" class="btn primary">Lưu thay đổi</button></div>
+  </form>
+</dialog>
+
+<dialog id="dlgConfirm" aria-labelledby="dcMsg">
+  <form method="dialog" class="dlg">
+    <h2 id="dcMsg"></h2>
+    <p id="dcSub" style="margin:0;color:var(--muted)"></p>
+    <div class="foot"><button class="btn" value="cancel">Hủy</button><button class="btn danger" value="ok" id="dcOk">Xóa</button></div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script>
+(function () {
+  'use strict';
+  var KEY = 'itsm-portal-v1';
+  var STATUS_ORDER = ['pending', 'progress', 'done'];
+  var STATUS = { pending: 'Chờ tiếp nhận', progress: 'Đang xử lý', done: 'Đã hoàn thành' };
+  var PRIO = { urgent: 'Khẩn cấp', high: 'Cao', medium: 'Trung bình', low: 'Thấp' };
+  var DEV_ORDER = ['ok', 'maint', 'fault'];
+  var DEV = { ok: 'Hoạt động', maint: 'Bảo trì', fault: 'Sự cố' };
+  var VIEWS = {
+    tickets: ['Quản trị Ticket Hỗ trợ', 'Theo dõi và điều phối yêu cầu kỹ thuật toàn công ty', 'Tạo Ticket Mới'],
+    reports: ['Báo cáo thống kê', 'Tổng hợp ticket theo trạng thái, mức ưu tiên và loại sự cố', null],
+    devices: ['Quản lý thiết bị', 'Danh sách tài sản CNTT và tình trạng hoạt động', 'Thêm thiết bị'],
+    config: ['Cấu hình hệ thống', 'Thời hạn SLA, phân loại sự cố và thông báo', null]
+  };
+  var ICON = {
+    refresh: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 0 0-15.5-6.3L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 15.5 6.3L21 16"/><path d="M16 16h5v5"/></svg>',
+    trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/><path d="M10 11v6M14 11v6"/></svg>',
+    all: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9z"/><path d="M9 12h6M9 16h4"/></svg>',
+    clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+    spin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.2-8.6"/><path d="M21 4v5h-5"/></svg>',
+    check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 12 5 5L20 6"/></svg>'
+  };
+
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+  function fmt(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+  function parse(s) { return new Date(s.replace(' ', 'T')); }
+
+  function seed() {
+    return {
+      nextId: 1005,
+      nextDev: 1,
+      tickets: [
+        { id: 1001, title: 'Màn hình máy bàn không lên nguồn', user: 'user1', prio: 'urgent', status: 'pending', cat: 'Phần cứng', created: '2026-09-08 08:30', desc: 'Máy bàn phòng Kế toán bật nguồn nhưng màn hình không sáng, đèn nguồn case vẫn chạy. Đã thử cắm lại cáp HDMI.' },
+        { id: 1002, title: 'Cấp tài khoản VPN làm việc từ xa', user: 'hoa.nguyen', prio: 'medium', status: 'progress', cat: 'Tài khoản & quyền', created: '2026-09-08 09:15', desc: 'Nhân viên mới cần VPN để làm việc từ xa 2 ngày/tuần. Đã có phê duyệt của trưởng phòng.' },
+        { id: 1003, title: 'Cài đặt phần mềm kế toán MISA', user: 'thao.tran', prio: 'low', status: 'done', cat: 'Phần mềm', created: '2026-09-07 15:40', desc: 'Cài MISA trên máy mới của kế toán, kết nối cơ sở dữ liệu nội bộ.' },
+        { id: 1004, title: 'Lỗi mạng Wi-Fi tầng 3 chập chờn', user: 'tuan.le', prio: 'urgent', status: 'progress', cat: 'Mạng', created: '2026-09-08 10:05', desc: 'Wi-Fi tầng 3 rớt liên tục từ sáng, nhiều người dùng bị ảnh hưởng. Nghi ngờ Access Point hoặc PoE.' }
+      ],
+      devices: [
+        { id: 1, tag: 'PC-0142', name: 'Dell OptiPlex 7090', type: 'Desktop', user: 'user1', status: 'fault' },
+        { id: 2, tag: 'LT-0318', name: 'Lenovo ThinkPad T14', type: 'Laptop', user: 'hoa.nguyen', status: 'ok' },
+        { id: 3, tag: 'AP-0303', name: 'UniFi U6 Pro', type: 'Access Point', user: 'Tầng 3', status: 'fault' },
+        { id: 4, tag: 'PR-0021', name: 'HP LaserJet Pro M404', type: 'Máy in', user: 'Phòng Kế toán', status: 'ok' },
+        { id: 5, tag: 'SV-0001', name: 'Dell PowerEdge R650', type: 'Server', user: 'Phòng server', status: 'maint' }
+      ],
+      config: {
+        sla: { urgent: 4, high: 8, medium: 24, low: 72 },
+        categories: ['Phần cứng', 'Phần mềm', 'Mạng', 'Tài khoản & quyền', 'Khác'],
+        defaultPrio: 'medium', mail: true, auto: false
+      }
     };
+  }
 
-    const form = document.getElementById('loginForm');
-    const errorAlert = document.getElementById('errorAlert');
-    const loadingOverlay = document.getElementById('loadingOverlay');
+  var state = load();
+  state.nextDev = state.nextDev || (state.devices.length + 1);
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw) { var s = JSON.parse(raw); if (s && Array.isArray(s.tickets) && Array.isArray(s.devices) && s.config) return s; }
+    } catch (e) {}
+    return seed();
+  }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
 
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
-      errorAlert.style.display = 'none';
+  var toastTimer;
+  function toast(msg) {
+    var t = $('toast'); t.textContent = msg; t.hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.hidden = true; }, 2200);
+  }
 
-      const u = document.getElementById('username').value.trim();
-      const p = document.getElementById('password').value.trim();
+  // ---------- Tickets ----------
+  function renderStats() {
+    var vis = visibleTickets();
+    var c = { pending: 0, progress: 0, done: 0 };
+    vis.forEach(function (t) { c[t.status]++; });
+    var items = [
+      [vis.length, 'Tổng số Ticket', ICON.all, '--accent'],
+      [c.pending, 'Chờ tiếp nhận', ICON.clock, '--c-pending'],
+      [c.progress, 'Đang xử lý', ICON.spin, '--c-done'],
+      [c.done, 'Đã hoàn thành', ICON.check, '--muted']
+    ];
+    $('stats').innerHTML = items.map(function (i) {
+      return '<div class="stat" style="--c:var(' + i[3] + ')"><div class="ico">' + i[2] + '</div><div><b>' + i[0] + '</b><span>' + i[1] + '</span></div></div>';
+    }).join('');
+  }
 
-      loadingOverlay.style.display = 'flex';
+  function filtered() {
+    var q = $('q').value.trim().toLowerCase(), fs = $('fStatus').value, fp = $('fPrio').value;
+    return visibleTickets().filter(function (t) {
+      if (fs && t.status !== fs) return false;
+      if (fp && t.prio !== fp) return false;
+      if (q && (t.title + ' tk-' + t.id + ' ' + t.user).toLowerCase().indexOf(q) < 0) return false;
+      return true;
+    }).sort(function (a, b) { return a.id - b.id; });
+  }
 
-      setTimeout(() => {
-        loadingOverlay.style.display = 'none';
+  function renderTickets() {
+    renderStats();
+    var rows = filtered();
+    $('tbTickets').innerHTML = rows.length ? rows.map(function (t) {
+      var nxt = STATUS_ORDER[(STATUS_ORDER.indexOf(t.status) + 1) % STATUS_ORDER.length];
+      return '<tr data-id="' + t.id + '">' +
+        '<td class="code">#TK-' + t.id + '</td>' +
+        '<td><button type="button" class="link" data-act="open">' + esc(t.title) + '</button></td>' +
+        '<td>' + esc(t.user) + '</td>' +
+        '<td><span class="prio p-' + t.prio + '">' + PRIO[t.prio] + '</span></td>' +
+        '<td><span class="chip s-' + t.status + '">' + STATUS[t.status] + '</span></td>' +
+        '<td class="mono">' + esc(t.created) + '</td>' +
+        '<td>' + (isAdmin() ? '<div class="acts">' +
+          '<button type="button" class="icon-btn" data-act="next" title="Chuyển sang: ' + STATUS[nxt] + '" aria-label="Chuyển sang ' + STATUS[nxt] + '">' + ICON.refresh + '</button>' +
+          '<button type="button" class="icon-btn del" data-act="del" title="Xóa ticket" aria-label="Xóa ticket #TK-' + t.id + '">' + ICON.trash + '</button>' +
+        '</div>' : '<span class="mono">—</span>') + '</td></tr>';
+    }).join('') : '<tr><td colspan="7" class="empty">Không có ticket nào khớp bộ lọc.</td></tr>';
+  }
 
-        if (validAccounts[u] && validAccounts[u] === p) {
-          localStorage.setItem('currentUser', u);
-          window.location.href = 'dashboard.html';
-        } else {
-          errorAlert.style.display = 'flex';
-        }
-      }, 600);
+  function findTicket(id) { return state.tickets.filter(function (t) { return t.id === id; })[0]; }
+  function advance(t) {
+    t.status = STATUS_ORDER[(STATUS_ORDER.indexOf(t.status) + 1) % STATUS_ORDER.length];
+    save(); renderTickets(); renderReports();
+  }
+
+  $('tbTickets').addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-act]'); if (!btn) return;
+    var id = +btn.closest('tr').getAttribute('data-id'), t = findTicket(id); if (!t) return;
+    var act = btn.getAttribute('data-act');
+    if ((act === 'next' || act === 'del') && !isAdmin()) return;
+    if (act === 'open') openDetail(t);
+    if (act === 'next') { advance(t); toast('#TK-' + t.id + ' → ' + STATUS[t.status]); }
+    if (act === 'del') confirmBox('Xóa ticket #TK-' + t.id + '?', 'Thao tác này không thể hoàn tác.', function () {
+      state.tickets = state.tickets.filter(function (x) { return x.id !== t.id; });
+      save(); renderTickets(); renderReports(); toast('Đã xóa #TK-' + t.id);
     });
-  </script>
-</body>
-</html>
+  });
+  ['q', 'fStatus', 'fPrio'].forEach(function (id) { $(id).addEventListener('input', renderTickets); });
+
+  function catOptions(sel) {
+    return state.config.categories.map(function (c) { return '<option' + (c === sel ? ' selected' : '') + '>' + esc(c) + '</option>'; }).join('');
+  }
+
+  function openNew() {
+    $('formTicket').reset();
+    $('tCat').innerHTML = catOptions();
+    $('tPrio').value = state.config.defaultPrio;
+    if (isAdmin()) { $('tUser').readOnly = false; } else { $('tUser').value = me; $('tUser').readOnly = true; }
+    $('dlgTicket').showModal();
+    $('tTitle').focus();
+  }
+  $('formTicket').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var t = {
+      id: state.nextId++, title: $('tTitle').value.trim(), user: isAdmin() ? $('tUser').value.trim() : me,
+      prio: $('tPrio').value, status: 'pending', cat: $('tCat').value,
+      created: fmt(new Date()), desc: $('tDesc').value.trim()
+    };
+    if (state.config.auto && t.prio === 'urgent') t.status = 'progress';
+    state.tickets.push(t); save();
+    $('dlgTicket').close(); renderTickets(); renderReports(); toast('Đã tạo #TK-' + t.id);
+  });
+
+  function openDetail(t) {
+    var due = new Date(parse(t.created).getTime() + (state.config.sla[t.prio] || 24) * 3600000);
+    var late = t.status !== 'done' && due.getTime() < Date.now();
+    $('detailBody').innerHTML =
+      '<h2 id="ddTitle">#TK-' + t.id + ' · ' + esc(t.title) + '</h2>' +
+      '<dl class="kv">' +
+        '<dt>Người yêu cầu</dt><dd>' + esc(t.user) + '</dd>' +
+        '<dt>Loại sự cố</dt><dd>' + esc(t.cat || 'Khác') + '</dd>' +
+        '<dt>Mức ưu tiên</dt><dd><span class="prio p-' + t.prio + '">' + PRIO[t.prio] + '</span></dd>' +
+        '<dt>Thời gian gửi</dt><dd class="mono" style="color:var(--fg)">' + esc(t.created) + '</dd>' +
+        '<dt>Hạn SLA</dt><dd class="mono" style="color:var(--fg)">' + (t.status === 'done' ? 'Đã hoàn thành' : fmt(due) + (late ? ' <span class="late">· Quá hạn</span>' : '')) + '</dd>' +
+        '<dt>Mô tả</dt><dd>' + (t.desc ? esc(t.desc) : '<span style="color:var(--muted)">Không có mô tả</span>') + '</dd>' +
+      '</dl>' +
+      '<div class="field"><label for="dStatus">Trạng thái</label><select id="dStatus" style="width:100%"' + (isAdmin() ? '' : ' disabled') + '>' +
+        STATUS_ORDER.map(function (s) { return '<option value="' + s + '"' + (s === t.status ? ' selected' : '') + '>' + STATUS[s] + '</option>'; }).join('') +
+      '</select></div>' +
+      '<div class="foot"><button type="button" class="btn" data-close>Đóng</button></div>';
+    $('dStatus').addEventListener('change', function (e) {
+      t.status = e.target.value; save(); renderTickets(); renderReports(); toast('#TK-' + t.id + ' → ' + STATUS[t.status]);
+    });
+    $('dlgDetail').showModal();
+  }
+
+  // ---------- Reports ----------
+  function bars(entries, total) {
+    return entries.map(function (e) {
+      var pct = total ? Math.round(e[1] * 100 / total) : 0;
+      return '<div class="bar" style="--c:' + e[2] + '"><span>' + esc(e[0]) + '</span><div class="track"><i style="width:' + pct + '%"></i></div><b>' + e[1] + '</b></div>';
+    }).join('');
+  }
+  function renderReports() {
+    var T = state.tickets, n = T.length;
+    var byS = { pending: 0, progress: 0, done: 0 }, byP = { urgent: 0, high: 0, medium: 0, low: 0 }, byC = {}, byU = {};
+    T.forEach(function (t) {
+      byS[t.status]++; byP[t.prio]++;
+      var c = t.cat || 'Khác'; byC[c] = (byC[c] || 0) + 1;
+      byU[t.user] = (byU[t.user] || 0) + 1;
+    });
+    var rate = n ? Math.round(byS.done * 100 / n) : 0;
+    var cats = Object.keys(byC).sort(function (a, b) { return byC[b] - byC[a]; }).map(function (k) { return [k, byC[k], 'var(--accent)']; });
+    var users = Object.keys(byU).sort(function (a, b) { return byU[b] - byU[a] || (a < b ? -1 : 1); }).slice(0, 5).map(function (k) { return [k, byU[k], 'var(--accent)']; });
+    $('reportGrid').innerHTML =
+      '<div class="panel card"><h2>Tỷ lệ hoàn thành</h2><div class="kpi"><b>' + rate + '%</b><span>' + byS.done + '/' + n + ' ticket</span></div>' +
+        bars([['Đã hoàn thành', byS.done, 'var(--c-done)'], ['Còn mở', n - byS.done, 'var(--c-pending)']], n) + '</div>' +
+      '<div class="panel card"><h2>Theo trạng thái</h2>' + bars([
+        [STATUS.pending, byS.pending, 'var(--c-pending)'], [STATUS.progress, byS.progress, 'var(--c-progress)'], [STATUS.done, byS.done, 'var(--c-done)']], n) + '</div>' +
+      '<div class="panel card"><h2>Theo mức ưu tiên</h2>' + bars([
+        [PRIO.urgent, byP.urgent, 'var(--c-urgent)'], [PRIO.high, byP.high, 'var(--c-high)'], [PRIO.medium, byP.medium, 'var(--c-medium)'], [PRIO.low, byP.low, 'var(--c-low)']], n) + '</div>' +
+      '<div class="panel card"><h2>Theo loại sự cố</h2>' + (cats.length ? bars(cats, n) : '<span class="empty">Chưa có dữ liệu</span>') + '</div>' +
+      '<div class="panel card"><h2>Người yêu cầu nhiều nhất</h2>' + (users.length ? bars(users, n) : '<span class="empty">Chưa có dữ liệu</span>') + '</div>';
+  }
+
+  // ---------- Devices ----------
+  function renderDevices() {
+    $('tbDevices').innerHTML = state.devices.length ? state.devices.map(function (d) {
+      return '<tr data-id="' + d.id + '"><td class="code">' + esc(d.tag) + '</td><td>' + esc(d.name) + '</td><td>' + esc(d.type) + '</td><td>' + esc(d.user) + '</td>' +
+        '<td><span class="chip d-' + d.status + '">' + DEV[d.status] + '</span></td>' +
+        '<td><div class="acts">' +
+          '<button type="button" class="icon-btn" data-act="next" title="Đổi tình trạng" aria-label="Đổi tình trạng ' + esc(d.tag) + '">' + ICON.refresh + '</button>' +
+          '<button type="button" class="icon-btn del" data-act="del" title="Xóa thiết bị" aria-label="Xóa thiết bị ' + esc(d.tag) + '">' + ICON.trash + '</button>' +
+        '</div></td></tr>';
+    }).join('') : '<tr><td colspan="6" class="empty">Chưa có thiết bị. Chọn "Thêm thiết bị" để tạo mới.</td></tr>';
+  }
+  $('tbDevices').addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-act]'); if (!btn) return;
+    var id = +btn.closest('tr').getAttribute('data-id');
+    var d = state.devices.filter(function (x) { return x.id === id; })[0]; if (!d) return;
+    if (btn.getAttribute('data-act') === 'next') {
+      d.status = DEV_ORDER[(DEV_ORDER.indexOf(d.status) + 1) % DEV_ORDER.length];
+      save(); renderDevices(); toast(d.tag + ' → ' + DEV[d.status]);
+    } else {
+      confirmBox('Xóa thiết bị ' + d.tag + '?', 'Thao tác này không thể hoàn tác.', function () {
+        state.devices = state.devices.filter(function (x) { return x.id !== d.id; });
+        save(); renderDevices(); toast('Đã xóa ' + d.tag);
+      });
+    }
+  });
+  $('formDevice').addEventListener('submit', function (e) {
+    e.preventDefault();
+    state.devices.push({ id: state.nextDev++, tag: $('vTag').value.trim(), name: $('vName').value.trim(), type: $('vType').value, user: $('vUser').value.trim(), status: 'ok' });
+    save(); $('dlgDevice').close(); renderDevices(); toast('Đã thêm thiết bị');
+  });
+
+  // ---------- Config ----------
+  function fillConfig() {
+    var c = state.config;
+    ['urgent', 'high', 'medium', 'low'].forEach(function (k) { $('sla-' + k).value = c.sla[k]; });
+    $('cfgCats').value = c.categories.join(', ');
+    $('cfgPrio').value = c.defaultPrio;
+    $('cfgMail').checked = !!c.mail; $('cfgAuto').checked = !!c.auto;
+  }
+  $('cfgForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var c = state.config;
+    ['urgent', 'high', 'medium', 'low'].forEach(function (k) { c.sla[k] = Math.max(1, parseInt($('sla-' + k).value, 10) || c.sla[k]); });
+    var cats = $('cfgCats').value.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+    if (cats.length) c.categories = cats;
+    c.defaultPrio = $('cfgPrio').value; c.mail = $('cfgMail').checked; c.auto = $('cfgAuto').checked;
+    save(); fillConfig(); toast('Đã lưu cấu hình');
+  });
+  $('btnReset').addEventListener('click', function () {
+    confirmBox('Khôi phục dữ liệu mẫu?', 'Toàn bộ ticket, thiết bị và cấu hình hiện tại sẽ bị thay thế.', function () {
+      state = seed(); save(); renderAll(); toast('Đã khôi phục dữ liệu mẫu');
+    }, 'Khôi phục');
+  });
+
+  // ---------- Dialog helpers ----------
+  var pending = null;
+  function confirmBox(msg, sub, fn, okLabel) {
+    $('dcMsg').textContent = msg; $('dcSub').textContent = sub; $('dcOk').textContent = okLabel || 'Xóa';
+    pending = fn; $('dlgConfirm').returnValue = ''; $('dlgConfirm').showModal();
+  }
+  $('dlgConfirm').addEventListener('close', function () {
+    var fn = pending; pending = null;
+    if (fn && $('dlgConfirm').returnValue === 'ok') fn();
+  });
+  document.querySelectorAll('dialog').forEach(function (d) {
+    d.addEventListener('click', function (e) {
+      if (e.target === d) d.close();
+      if (e.target.closest && e.target.closest('[data-close]')) d.close();
+    });
+  });
+
+  // ---------- Navigation ----------
+  var current = 'tickets';
+  function setView(v) {
+    current = v;
+    Object.keys(VIEWS).forEach(function (k) { $('view-' + k).hidden = k !== v; });
+    document.querySelectorAll('.nav button').forEach(function (b) {
+      if (b.getAttribute('data-view') === v) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+    });
+    $('pageTitle').textContent = VIEWS[v][0];
+    $('pageSub').textContent = (v === 'tickets' && !isAdmin()) ? 'Theo dõi các yêu cầu hỗ trợ của bạn' : VIEWS[v][1];
+    $('btnNew').hidden = !VIEWS[v][2];
+    if (VIEWS[v][2]) $('btnNewLabel').textContent = VIEWS[v][2];
+    if (v === 'config') fillConfig();
+  }
+  document.querySelectorAll('.nav button').forEach(function (b) {
+    b.addEventListener('click', function () { setView(b.getAttribute('data-view')); });
+  });
+  $('btnNew').addEventListener('click', function () {
+    if (current === 'tickets') openNew();
+    if (current === 'devices') { $('formDevice').reset(); $('dlgDevice').showModal(); $('vTag').focus(); }
+  });
+
+  function renderAll() { renderTickets(); renderReports(); renderDevices(); fillConfig(); }
+
+  // ---------- Đăng nhập (demo, chỉ chạy phía trình duyệt) ----------
+  var SKEY = 'itsm-portal-session';
+  var UKEY = 'itsm-portal-users';
+  function defaultUsers() {
+    return {
+      admin: { pass: '123456', role: 'admin', name: 'Quản trị viên', email: 'admin@congty.vn' },
+      user1: { pass: '123456', role: 'user', name: 'user1', email: 'user1@congty.vn' }
+    };
+  }
+  function loadUsers() {
+    try {
+      var raw = localStorage.getItem(UKEY);
+      if (raw) { var u = JSON.parse(raw); if (u && u.admin && u.user1) return u; }
+    } catch (e) {}
+    return defaultUsers();
+  }
+  function saveUsers() { try { localStorage.setItem(UKEY, JSON.stringify(USERS)); } catch (e) {} }
+  var USERS = loadUsers();
+  var me = null;
+  function isAdmin() { return !!me && USERS[me].role === 'admin'; }
+  function visibleTickets() {
+    return isAdmin() ? state.tickets : state.tickets.filter(function (t) { return t.user === me; });
+  }
+  function loadSession() {
+    try {
+      var u = localStorage.getItem(SKEY);
+      if (u && Object.prototype.hasOwnProperty.call(USERS, u)) return u;
+    } catch (e) {}
+    return null;
+  }
+  function renderAccount() {
+    var u = USERS[me], nm = u.name || me;
+    $('uAv').textContent = nm.charAt(0).toUpperCase();
+    $('uName').textContent = nm; $('uName2').textContent = nm;
+    $('uRole').textContent = isAdmin() ? 'Quản trị viên' : 'Người dùng';
+    $('uMail').textContent = u.email || 'Chưa có email';
+  }
+  function applyAuth() {
+    $('login').hidden = !!me;
+    $('app').hidden = !me;
+    if (!me) return;
+    renderAccount();
+    document.querySelectorAll('[data-role="admin"]').forEach(function (el) { el.hidden = !isAdmin(); });
+    renderAll(); setView('tickets');
+  }
+  $('loginForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var name = $('lUser').value.trim().toLowerCase(), pass = $('lPass').value;
+    var ok = Object.prototype.hasOwnProperty.call(USERS, name) && USERS[name].pass === pass;
+    if (!ok) {
+      $('lErr').textContent = 'Sai tên đăng nhập hoặc mật khẩu.'; $('lErr').hidden = false;
+      $('lPass').value = ''; $('lPass').focus(); return;
+    }
+    me = name;
+    try { localStorage.setItem(SKEY, me); } catch (er) {}
+    $('lPass').value = ''; $('lErr').hidden = true;
+    applyAuth();
+  });
+  document.querySelectorAll('.demo button[data-u]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      $('lUser').value = b.getAttribute('data-u'); $('lPass').value = b.getAttribute('data-p'); $('lErr').hidden = true; $('lPass').focus();
+    });
+  });
+  $('demoReset').addEventListener('click', function () {
+    USERS = defaultUsers(); saveUsers(); $('lErr').hidden = true; toast('Đã đặt lại tài khoản demo');
+  });
+
+  // ---------- Menu tài khoản ----------
+  function menuOpen(open) {
+    $('acctMenu').hidden = !open;
+    $('acctBtn').setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  $('acctBtn').addEventListener('click', function (e) { e.stopPropagation(); menuOpen($('acctMenu').hidden); });
+  document.addEventListener('click', function (e) { if (!$('acct').contains(e.target)) menuOpen(false); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !$('acctMenu').hidden) { menuOpen(false); $('acctBtn').focus(); }
+  });
+
+  $('miLogout').addEventListener('click', function () {
+    menuOpen(false);
+    me = null;
+    try { localStorage.removeItem(SKEY); } catch (er) {}
+    $('q').value = ''; $('fStatus').value = ''; $('fPrio').value = '';
+    $('loginForm').reset(); $('lErr').hidden = true;
+    applyAuth(); $('lUser').focus();
+  });
+
+  $('miEdit').addEventListener('click', function () {
+    menuOpen(false);
+    var u = USERS[me];
+    $('formAccount').reset();
+    $('aUser').value = me; $('aRole').value = isAdmin() ? 'Quản trị viên' : 'Người dùng';
+    $('aName').value = u.name || ''; $('aMail').value = u.email || ''; $('aErr').hidden = true;
+    $('dlgAccount').showModal(); $('aName').focus();
+  });
+  $('formAccount').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var u = USERS[me], oldp = $('aOld').value, np = $('aNew').value, cp = $('aNew2').value;
+    function fail(m) { $('aErr').textContent = m; $('aErr').hidden = false; }
+    if (oldp || np || cp) {
+      if (oldp !== u.pass) return fail('Mật khẩu hiện tại không đúng.');
+      if (np.length < 6) return fail('Mật khẩu mới cần tối thiểu 6 ký tự.');
+      if (np !== cp) return fail('Nhập lại mật khẩu mới chưa khớp.');
+    }
+    u.name = $('aName').value.trim(); u.email = $('aMail').value.trim();
+    if (np) u.pass = np;
+    saveUsers(); renderAccount(); $('dlgAccount').close();
+    toast(np ? 'Đã cập nhật tài khoản và mật khẩu' : 'Đã cập nhật tài khoản');
+  });
+
+  me = loadSession(); applyAuth();
+})();
+</script>
